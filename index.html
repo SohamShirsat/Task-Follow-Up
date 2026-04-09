@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  try {
+    const desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+    if (desc && desc.get && !desc.set) {
+      Object.defineProperty(window, 'fetch', {
+        get: desc.get,
+        set: function(val) { console.warn('Ignored attempt to set window.fetch'); },
+        configurable: true,
+        enumerable: desc.enumerable
+      });
+    }
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Management Prototype</title>
+<style>
+  :root {
+    --bg-color: #f4f5f7;
+    --border-color: #e0e0e0;
+    --text-main: #000000;
+    --text-muted: #666666;
+    --white: #ffffff;
+    --black: #000000;
+  }
+  
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background: var(--bg-color); 
+    color: var(--text-main); 
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Navigation */
+  .top-nav {
+    background: #1e1e2d;
+    color: var(--white);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 24px;
+    font-size: 14px;
+  }
+  .top-nav .logo { font-weight: bold; font-size: 18px; }
+  .top-nav .nav-links { display: flex; gap: 24px; flex: 1; }
+  .top-nav .nav-links a { color: var(--white); text-decoration: none; cursor: pointer; }
+  .top-nav .search-bar { 
+    background: rgba(255,255,255,0.1); 
+    border: none; 
+    border-radius: 4px; 
+    padding: 8px 16px; 
+    color: white; 
+    width: 300px;
+  }
+  .top-nav .right-actions { display: flex; gap: 16px; align-items: center; }
+  .btn-whats-new { background: #e0e0e0; color: #000; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+  /* Sub Navigation */
+  .sub-nav {
+    background: var(--white);
+    height: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sub-nav h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  .sub-nav-actions { display: flex; gap: 16px; align-items: center; }
+  .search-input {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 250px;
+  }
+  .btn-primary {
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .btn-secondary {
+    background: var(--white);
+    color: var(--black);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  /* Main Layout */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: var(--bg-color);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+  }
+  .sidebar ul { list-style: none; padding: 16px 0; margin: 0; }
+  .sidebar li {
+    padding: 12px 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .sidebar li:hover { background: #ebebeb; }
+  .sidebar li.active {
+    background: var(--white);
+    color: var(--black);
+    border-left: 4px solid var(--black);
+    font-weight: 600;
+  }
+
+  /* Content Area */
+  .content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  .content-header {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Table */
+  .table-container {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { 
+    padding: 16px; 
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color); 
+    font-size: 14px; 
+    vertical-align: top;
+  }
+  th { font-weight: 600; color: var(--text-main); }
+  td { color: var(--text-muted); }
+  .text-black { color: var(--black); }
+  .link { color: var(--black); text-decoration: underline; cursor: pointer; }
+  .badge { border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: var(--black); margin-left: 8px; }
+  
+  /* Modal Overlay */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; justify-content: center; align-items: flex-start;
+    z-index: 100;
+    padding: 40px;
+    overflow-y: auto;
+  }
+  
+  /* Modal Content */
+  .modal {
+    background: var(--white);
+    width: 100%;
+    max-width: 900px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .modal-header h2 { margin: 0 0 8px 0; font-size: 24px; }
+  .modal-header p { margin: 0; color: var(--text-muted); font-size: 14px; }
+  .close-btn { cursor: pointer; font-size: 20px; font-weight: bold; color: var(--text-muted); }
+  
+  .modal-body { padding: 24px; }
+  
+  /* Form Sections inside Modal */
+  .form-section {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .section-title {
+    width: 200px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .section-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .form-row {
+    display: flex;
+    gap: 16px;
+  }
+  .form-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .form-group label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .helper-text { font-size: 12px; color: var(--text-muted); }
+  
+  hr { border: none; border-top: 1px solid var(--border-color); margin: 0 0 32px 0; }
+  
+  /* Cards */
+  .cards { display: flex; gap: 16px; }
+  .card { 
+    flex: 1; border: 1px solid var(--border-color); padding: 16px; 
+    border-radius: 4px; cursor: pointer; 
+  }
+  .card.active { border: 2px solid var(--black); padding: 15px; }
+  .card-title { font-weight: bold; margin-bottom: 4px; font-size: 14px; color: var(--black); }
+  .card-desc { font-size: 12px; color: var(--text-muted); }
+
+  .hidden { display: none !important; }
+  .error { border-color: red !important; }
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <div class="logo">Logo</div>
+  <div class="nav-links">
+    <a>Trips</a>
+    <a>Bookings</a>
+    <a>Accounting</a>
+    <a>Call Logs</a>
+  </div>
+  <input type="text" class="search-bar" placeholder="Search for trips...">
+  <div class="right-actions">
+    <a>Services</a>
+    <span>🔔</span>
+    <button class="btn-whats-new">What's New</button>
+    <span>🏠</span>
+    <span>👤</span>
+  </div>
+</nav>
+
+<!-- SCREEN 1: All Tasks -->
+<div id="screen1" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+  <div class="sub-nav">
+    <h1>All Tasks</h1>
+    <div class="sub-nav-actions">
+      <input type="text" class="search-input" placeholder="Search...">
+      <button class="btn-secondary" onclick="goToScreen2()">Auto Follow-Up Rules</button>
+      <button class="btn-primary" onclick="openModal('modalA')">Add Task / Follow-Up</button>
+    </div>
+  </div>
+  
+  <div class="main-layout">
+    <aside class="sidebar">
+      <ul>
+        <li>Today</li>
+        <li>Yesterday</li>
+        <li>Overdue</li>
+        <li>Upcoming</li>
+        <li class="active">All</li>
+      </ul>
+    </aside>
+    
+    <main class="content">
+      <div class="content-header">
+        Showing 1 - 30 of 544 Items <span>↻</span>
+      </div>
+      
+      <div class="table-container">
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th>Due At</th>
+              <th>Description</th>
+              <th>Trip Source</th>
+              <th>Guest</th>
+              <th>For</th>
+              <th>Created by</th>
+              <th>Assigned To</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-black">10 Apr, 12:00 AM</td>
+              <td class="text-black">test follow upp 1</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>Me on 09 Apr</td>
+              <td class="text-black">Self</td>
+              <td>⋮</td>
+            </tr>
+            <tr>
+              <td class="text-black">11 Apr, 12:00 AM</td>
+              <td class="text-black">follow up 2</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>Me on 09 Apr</td>
+              <td class="text-black">Self</td>
+              <td>⋮</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="text-black">Reproduce a case</td>
+              <td>Abcde - bnxgds</td>
+              <td>Mr. AB Test<br><span style="font-size:12px">2A</span></td>
+              <td><a class="link">Trip#6144</a></td>
+              <td>Abhishek Sembark<br>on 08 Apr</td>
+              <td class="text-black">Abhishek Sembark</td>
+              <td>⋮</td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="text-black">Testing from mobile</td>
+              <td>Abcde - 15144</td>
+              <td>Mr. AB Test<br><span style="font-size:12px">4A, 2C</span></td>
+              <td><a class="link">Trip#6143</a></td>
+              <td>Abhishek Sembark<br>on 08 Apr</td>
+              <td class="text-black">Abhishek Sembark</td>
+              <td>⋮</td>
+            </tr>
+            <tr>
+              <td class="text-black">8 Apr, 12:00 AM <span class="badge">Overdue</span></td>
+              <td class="text-black">Payment pending before check-in</td>
+              <td>B2C..</td>
+              <td>Mr. sansaush<br><span style="font-size:12px">2A</span></td>
+              <td><a class="link">Trip#5993</a></td>
+              <td>Anush Chettri<br>on 19 Mar</td>
+              <td class="text-black">Anush Chettri</td>
+              <td>⋮</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- SCREEN 2: Auto Follow-Up Rules -->
+<div id="screen2" class="hidden" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+  <div class="sub-nav">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <a class="link" onclick="goToScreen1()" style="text-decoration: none; font-size: 20px;">←</a>
+      <h1>Auto Follow-Up Rules</h1>
+    </div>
+    <div class="sub-nav-actions">
+      <button class="btn-primary" onclick="openModal('modalB')">Create New Rule</button>
+    </div>
+  </div>
+  
+  <div class="main-layout">
+    <main class="content" style="padding: 24px;">
+      <div class="table-container">
+        <table id="ruleTable">
+          <thead>
+            <tr>
+              <th>Rule Name</th>
+              <th>Level</th>
+              <th>Schedule / Trigger</th>
+              <th>Task Type</th>
+              <th>Agents / Scope</th>
+              <th>Assigned To</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-black">CRR Monthly Follow-Up</td>
+              <td>Trip Source</td>
+              <td>1st, 8th, 16th, 24th of month</td>
+              <td>Follow-Up Call</td>
+              <td>80 agents</td>
+              <td>Trip Source's Owner</td>
+              <td class="text-black">Active</td>
+              <td><a class="link">Edit</a> · <a class="link">Deactivate</a></td>
+            </tr>
+            <tr>
+              <td class="text-black">Post-Quotation Follow-Up</td>
+              <td>Trip</td>
+              <td>First Quotation Created</td>
+              <td>Follow-Up Call</td>
+              <td>All Trips</td>
+              <td>Trip's Owner</td>
+              <td class="text-black">Active</td>
+              <td><a class="link">Edit</a> · <a class="link">Deactivate</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL A: Add Task / Follow-Up -->
+<div id="modalA" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Add Task / Follow-Up</h2>
+        <p>Select the details you want to save for this task</p>
+      </div>
+      <div class="close-btn" onclick="closeModal('modalA')">✕</div>
+    </div>
+    <div class="modal-body">
+      
+      <div class="form-section">
+        <div class="section-title">
+          <span>📋</span> Task Level
+        </div>
+        <div class="section-content">
+          <div class="cards">
+            <div class="card" id="card-ts" onclick="selectCardA('ts')">
+              <div class="card-title">Trip Source</div>
+              <div class="card-desc">For a B2B travel agent — no trip required</div>
+            </div>
+            <div class="card" id="card-trip" onclick="selectCardA('trip')">
+              <div class="card-title">Trip</div>
+              <div class="card-desc">For an existing trip or quotation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="formA" class="hidden">
+        <hr>
+        <div class="form-section">
+          <div class="section-title">
+            <span>🎯</span> Target
+          </div>
+          <div class="section-content">
+            <div class="form-row" id="fg-ts">
+              <div class="form-group">
+                <label>Trip Source</label>
+                <input type="text" id="a-ts" placeholder="Search agent by name..." class="req-a">
+              </div>
+            </div>
+            <div class="form-row hidden" id="fg-trip">
+              <div class="form-group">
+                <label>Trip</label>
+                <input type="text" id="a-trip" placeholder="Search by trip number or guest name..." class="req-a">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="form-section">
+          <div class="section-title">
+            <span>📝</span> Task Details
+          </div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Task Type</label>
+                <select id="a-type" class="req-a">
+                  <option value="">Select...</option>
+                  <option>Follow-Up Call</option>
+                  <option>WhatsApp Follow-Up</option>
+                  <option>Email Follow-Up</option>
+                  <option>Payment Follow-Up</option>
+                  <option>Confirmation Call</option>
+                  <option>Reconfirmation</option>
+                  <option>Internal Task</option>
+                  <option>General Comment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Due Date (optional)</label>
+                <input type="datetime-local" id="a-date">
+                <div class="helper-text">If set, this task will appear as a reminder.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Assign To (optional)</label>
+                <input type="text" id="a-assign" placeholder="Search team member...">
+                <div class="helper-text">Leave blank to assign to yourself.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Comment</label>
+                <textarea id="a-comment" rows="3" placeholder="Describe the action needed..." class="req-a"></textarea>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top: 16px; justify-content: flex-end;">
+              <button class="btn-secondary" onclick="closeModal('modalA')" style="margin-right: 16px;">Cancel</button>
+              <button class="btn-primary" onclick="saveModalA()">Save Task</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL B: Create New Rule -->
+<div id="modalB" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Create New Rule</h2>
+        <p>Set up an automated follow-up rule</p>
+      </div>
+      <div class="close-btn" onclick="closeModal('modalB')">✕</div>
+    </div>
+    <div class="modal-body">
+      
+      <div class="form-section">
+        <div class="section-title">
+          <span>📋</span> Rule Level
+        </div>
+        <div class="section-content">
+          <div class="cards">
+            <div class="card" id="card-r-ts" onclick="selectCardB('ts')">
+              <div class="card-title">Trip Source Level</div>
+              <div class="card-desc">Creates tasks on a schedule against a B2B agent.</div>
+            </div>
+            <div class="card" id="card-r-trip" onclick="selectCardB('trip')">
+              <div class="card-title">Trip Level</div>
+              <div class="card-desc">Creates tasks when a specific event happens on a trip.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="formB" class="hidden">
+        <hr>
+        <div class="form-section">
+          <div class="section-title">
+            <span>⚙️</span> Rule Identity
+          </div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Rule Name</label>
+                <input type="text" id="b-name" class="req-b">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="b-ts-fields" class="hidden">
+          <hr>
+          <div class="form-section">
+            <div class="section-title">
+              <span>📅</span> Schedule & Target
+            </div>
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Trip Source(s)</label>
+                  <input type="text" id="b-ts-agents" placeholder="Search and select agents..." class="req-b-ts">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Start Date</label>
+                  <input type="date" id="b-start" class="req-b-ts">
+                </div>
+                <div class="form-group">
+                  <label>End Date (optional)</label>
+                  <input type="date" id="b-end">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Schedule Type</label>
+                  <select id="b-sch-type" onchange="toggleSch()">
+                    <option value="days">Fixed Days of Month</option>
+                    <option value="freq">Fixed Frequency</option>
+                  </select>
+                </div>
+                <div class="form-group" id="sch-freq" style="display:none;">
+                  <label>Every (days)</label>
+                  <input type="number" id="b-freq">
+                </div>
+                <div class="form-group">
+                  <label>Time of Day</label>
+                  <input type="time" id="b-time" class="req-b-ts">
+                </div>
+              </div>
+              <div class="form-row" id="sch-days">
+                <div class="form-group">
+                  <label>Select Dates</label>
+                  <input type="text" id="b-days-input" placeholder="e.g. 1, 15, 28">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="b-trip-fields" class="hidden">
+          <hr>
+          <div class="form-section">
+            <div class="section-title">
+              <span>⚡</span> Trigger & Scope
+            </div>
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Trip Source(s) Scope (optional)</label>
+                  <input type="text" id="b-trip-scope" placeholder="Leave blank for all trips">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Trigger</label>
+                  <select id="b-trigger" class="req-b-trip" onchange="toggleTrigger()">
+                    <option value="">Select...</option>
+                    <option>First Quotation Created</option>
+                    <option>Booking Confirmed</option>
+                    <option>Payment Pending Before Check-In</option>
+                    <option>Pre Check-In Reconfirmation</option>
+                  </select>
+                </div>
+                <div class="form-group hidden" id="fg-days-before">
+                  <label>Days Before Check-In</label>
+                  <input type="number" id="b-days-before">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="form-section">
+          <div class="section-title">
+            <span>📝</span> Task Definition
+          </div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Task Type</label>
+                <select id="b-type" class="req-b">
+                  <option value="">Select...</option>
+                  <option>Follow-Up Call</option>
+                  <option>WhatsApp Follow-Up</option>
+                  <option>Email Follow-Up</option>
+                  <option>Payment Follow-Up</option>
+                  <option>Confirmation Call</option>
+                  <option>Reconfirmation</option>
+                  <option>Internal Task</option>
+                  <option>General Comment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Due Date Offset (Days)</label>
+                <input type="number" id="b-offset" class="req-b" placeholder="0 = same day">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Assign To</label>
+                <select id="b-assign" onchange="toggleAssignB()">
+                  <option id="opt-owner">Trip Source's Owner</option>
+                  <option>Specific Person</option>
+                </select>
+              </div>
+              <div class="form-group hidden" id="fg-specific">
+                <label>Specific Person</label>
+                <input type="text" id="b-specific" placeholder="Search team member...">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Comment</label>
+                <textarea id="b-comment" rows="3" placeholder="Pre-filled comment..." class="req-b"></textarea>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top: 16px; justify-content: flex-end;">
+              <button class="btn-secondary" onclick="closeModal('modalB')" style="margin-right: 16px;">Cancel</button>
+              <button class="btn-primary" onclick="saveModalB()">Save Rule</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let levelA = '';
+  let levelB = '';
+
+  function goToScreen2() {
+    document.getElementById('screen1').classList.add('hidden');
+    document.getElementById('screen2').classList.remove('hidden');
+  }
+  function goToScreen1() {
+    document.getElementById('screen2').classList.add('hidden');
+    document.getElementById('screen1').classList.remove('hidden');
+  }
+
+  function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+    if(id === 'modalA') {
+      levelA = '';
+      document.getElementById('card-ts').classList.remove('active');
+      document.getElementById('card-trip').classList.remove('active');
+      document.getElementById('formA').classList.add('hidden');
+      clearErrors('modalA');
+    } else if(id === 'modalB') {
+      levelB = '';
+      document.getElementById('card-r-ts').classList.remove('active');
+      document.getElementById('card-r-trip').classList.remove('active');
+      document.getElementById('formB').classList.add('hidden');
+      clearErrors('modalB');
+    }
+  }
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function selectCardA(type) {
+    levelA = type;
+    document.getElementById('card-ts').classList.toggle('active', type === 'ts');
+    document.getElementById('card-trip').classList.toggle('active', type === 'trip');
+    document.getElementById('formA').classList.remove('hidden');
+    document.getElementById('fg-ts').classList.toggle('hidden', type !== 'ts');
+    document.getElementById('fg-trip').classList.toggle('hidden', type !== 'trip');
+    
+    document.getElementById('a-ts').classList.toggle('req-a', type === 'ts');
+    document.getElementById('a-trip').classList.toggle('req-a', type === 'trip');
+  }
+
+  function saveModalA() {
+    clearErrors('modalA');
+    let valid = true;
+    document.querySelectorAll('.req-a').forEach(el => {
+      if(!el.classList.contains('hidden') && el.offsetParent !== null && !el.value.trim()) {
+        el.classList.add('error');
+        valid = false;
+      }
+    });
+    if(!valid) return;
+
+    let due = document.getElementById('a-date').value;
+    let dueStr = due ? new Date(due).toLocaleString('en-GB', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}) : 'No due date';
+    let type = document.getElementById('a-type').value;
+    let desc = document.getElementById('a-comment').value;
+    let forVal = levelA === 'ts' ? document.getElementById('a-ts').value : document.getElementById('a-trip').value;
+    let assign = document.getElementById('a-assign').value || 'Self';
+
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-black">${dueStr}</td>
+      <td class="text-black">${desc}</td>
+      <td>${levelA === 'ts' ? forVal : ''}</td>
+      <td></td>
+      <td><a class="link">${levelA === 'trip' ? forVal : ''}</a></td>
+      <td>You just now</td>
+      <td class="text-black">${assign}</td>
+      <td>⋮</td>
+    `;
+    document.querySelector('#taskTable tbody').prepend(tr);
+    closeModal('modalA');
+  }
+
+  function selectCardB(type) {
+    levelB = type;
+    document.getElementById('card-r-ts').classList.toggle('active', type === 'ts');
+    document.getElementById('card-r-trip').classList.toggle('active', type === 'trip');
+    document.getElementById('formB').classList.remove('hidden');
+    
+    document.getElementById('b-ts-fields').classList.toggle('hidden', type !== 'ts');
+    document.getElementById('b-trip-fields').classList.toggle('hidden', type !== 'trip');
+    
+    document.getElementById('opt-owner').textContent = type === 'ts' ? "Trip Source's Owner" : "Trip's Owner";
+  }
+
+  function toggleSch() {
+    let val = document.getElementById('b-sch-type').value;
+    document.getElementById('sch-days').style.display = val === 'days' ? 'flex' : 'none';
+    document.getElementById('sch-freq').style.display = val === 'freq' ? 'flex' : 'none';
+  }
+
+  function toggleTrigger() {
+    let val = document.getElementById('b-trigger').value;
+    let show = val === 'Payment Pending Before Check-In' || val === 'Pre Check-In Reconfirmation';
+    document.getElementById('fg-days-before').classList.toggle('hidden', !show);
+    if(show) document.getElementById('b-days-before').classList.add('req-b-trip');
+    else document.getElementById('b-days-before').classList.remove('req-b-trip');
+  }
+
+  function toggleAssignB() {
+    let val = document.getElementById('b-assign').value;
+    document.getElementById('fg-specific').classList.toggle('hidden', val !== 'Specific Person');
+  }
+
+  function saveModalB() {
+    clearErrors('modalB');
+    let valid = true;
+    let reqClass = levelB === 'ts' ? '.req-b, .req-b-ts' : '.req-b, .req-b-trip';
+    document.querySelectorAll(reqClass).forEach(el => {
+      if(el.offsetParent !== null && !el.value.trim()) {
+        el.classList.add('error');
+        valid = false;
+      }
+    });
+    if(!valid) return;
+
+    let name = document.getElementById('b-name').value;
+    let lvlStr = levelB === 'ts' ? 'Trip Source' : 'Trip';
+    let sch = '';
+    let scope = '';
+    if(levelB === 'ts') {
+      let stype = document.getElementById('b-sch-type').value;
+      if(stype === 'days') {
+        let days = document.getElementById('b-days-input').value;
+        sch = days ? days + ' of month' : 'No days selected';
+      } else {
+        sch = 'Every ' + document.getElementById('b-freq').value + ' days';
+      }
+      scope = document.getElementById('b-ts-agents').value;
+    } else {
+      sch = document.getElementById('b-trigger').value;
+      scope = document.getElementById('b-trip-scope').value || 'All Trips';
+    }
+    let type = document.getElementById('b-type').value;
+    let assign = document.getElementById('b-assign').value === 'Specific Person' ? document.getElementById('b-specific').value : document.getElementById('opt-owner').textContent;
+
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-black">${name}</td>
+      <td>${lvlStr}</td>
+      <td>${sch}</td>
+      <td>${type}</td>
+      <td>${scope}</td>
+      <td>${assign}</td>
+      <td class="text-black">Active</td>
+      <td><a class="link">Edit</a> · <a class="link">Deactivate</a></td>
+    `;
+    document.querySelector('#ruleTable tbody').prepend(tr);
+    closeModal('modalB');
+  }
+
+  function clearErrors(modalId) {
+    document.getElementById(modalId).querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  }
+</script>
+</body>
+</html>
