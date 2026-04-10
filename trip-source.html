@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Sources</title>
+<style>
+  :root {
+    --bg-color: #f4f5f7;
+    --border-color: #e0e0e0;
+    --text-main: #000000;
+    --text-muted: #666666;
+    --white: #ffffff;
+    --black: #000000;
+    --primary-blue: #3b82f6;
+    --primary-blue-hover: #2563eb;
+  }
+  
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background: var(--bg-color); 
+    color: var(--text-main); 
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Navigation */
+  .top-nav {
+    background: #1e1e2d;
+    color: var(--white);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 24px;
+    font-size: 14px;
+  }
+  .top-nav .logo { font-weight: bold; font-size: 18px; }
+  .top-nav .nav-links { display: flex; gap: 24px; flex: 1; }
+  .top-nav .nav-links a { color: var(--white); text-decoration: none; cursor: pointer; }
+  .top-nav .search-bar { 
+    background: rgba(255,255,255,0.1); 
+    border: none; 
+    border-radius: 4px; 
+    padding: 8px 16px; 
+    color: white; 
+    width: 300px;
+  }
+  .top-nav .right-actions { display: flex; gap: 16px; align-items: center; }
+  .btn-whats-new { background: #e0e0e0; color: #000; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+  /* Tab Navigation below Top Nav */
+  .tab-nav {
+    background: var(--white);
+    display: flex;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-color);
+    gap: 24px;
+  }
+  .tab-nav-item {
+    padding: 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+  .tab-nav-item.active {
+    color: var(--black);
+    border-bottom-color: var(--primary-blue);
+  }
+
+  /* Sub Navigation */
+  .sub-nav {
+    background: var(--bg-color);
+    height: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sub-nav h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  .sub-nav-actions { display: flex; gap: 12px; align-items: center; position: relative; }
+  .search-input {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 250px;
+    background: var(--white);
+  }
+  .btn-primary {
+    background: var(--primary-blue);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .btn-primary:hover {
+    background: var(--primary-blue-hover);
+  }
+  .btn-secondary {
+    background: var(--white);
+    color: var(--black);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .btn-icon {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Ellipsis Menu */
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    min-width: 180px;
+    z-index: 10;
+  }
+  .dropdown-menu.show {
+    display: flex;
+  }
+  .dropdown-menu a {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text-main);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .dropdown-menu a:hover {
+    background: var(--bg-color);
+  }
+
+  /* Main Layout */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 200px;
+    background: var(--bg-color);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    padding-top: 16px;
+  }
+  .sidebar ul { list-style: none; padding: 0; margin: 0; }
+  .sidebar li {
+    padding: 12px 24px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .sidebar li:hover { background: #ebebeb; }
+  .sidebar li.active {
+    background: var(--white);
+    color: var(--black);
+    border-left: 4px solid var(--primary-blue);
+  }
+
+  /* Content Area */
+  .content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  .content-header {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Table */
+  .table-container {
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { 
+    padding: 16px; 
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color); 
+    font-size: 14px; 
+    vertical-align: top;
+  }
+  th { font-weight: 600; color: var(--text-main); }
+  td { color: var(--text-muted); }
+  .text-black { color: var(--black); font-weight: 500; }
+  .text-blue { color: var(--primary-blue); font-weight: 500; cursor: pointer; }
+  .link { color: var(--black); text-decoration: underline; cursor: pointer; }
+  .table-item-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  
+  /* Modal Overlay */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; justify-content: center; align-items: flex-start;
+    z-index: 100;
+    padding: 40px;
+    overflow-y: auto;
+  }
+  
+  /* Modal Content */
+  .modal {
+    background: var(--white);
+    width: 100%;
+    max-width: 900px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .modal-header h2 { margin: 0 0 8px 0; font-size: 24px; }
+  .modal-header p { margin: 0; color: var(--text-muted); font-size: 14px; }
+  .close-btn { cursor: pointer; font-size: 20px; font-weight: bold; color: var(--text-muted); }
+  
+  .modal-body { padding: 24px; }
+  
+  /* Form Sections inside Modal */
+  .form-section {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .section-title {
+    width: 200px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .section-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .form-row {
+    display: flex;
+    gap: 16px;
+  }
+  .form-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .form-group label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .helper-text { font-size: 12px; color: var(--text-muted); }
+  
+  hr { border: none; border-top: 1px solid var(--border-color); margin: 0 0 32px 0; }
+  
+  .hidden { display: none !important; }
+  .error { border-color: red !important; }
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <div class="logo">Logo</div>
+  <div class="nav-links">
+    <a>Trips</a>
+    <a>Bookings</a>
+    <a>Accounting</a>
+    <a>Call Logs</a>
+  </div>
+  <input type="text" class="search-bar" placeholder="Search for trips...">
+  <div class="right-actions">
+    <a>Services</a>
+    <span>🔔</span>
+    <button class="btn-whats-new">What's New</button>
+    <span>🏠</span>
+    <span>👤</span>
+  </div>
+</nav>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <div class="tab-nav-item">Repository</div>
+  <div class="tab-nav-item">Users</div>
+  <div class="tab-nav-item">Settings</div>
+</div>
+
+<!-- SCREEN 1: Trip Sources -->
+<div id="screen1" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+  <div class="sub-nav">
+    <h1>Trip Sources</h1>
+    <div class="sub-nav-actions">
+      <input type="text" class="search-input" placeholder="🔍 Search...">
+      <button class="btn-icon">⚙️</button>
+      <button class="btn-secondary" onclick="openModal('modalA')">Add Task / Follow-Up</button>
+      <button class="btn-primary">+ New Source</button>
+      <div style="position: relative;">
+        <button class="btn-icon" onclick="toggleDropdown()">⋮</button>
+        <div class="dropdown-menu" id="ellipsisDropdown">
+          <a onclick="goToScreen2()">Auto Follow-Up Rules</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="main-layout">
+    <aside class="sidebar">
+      <ul>
+        <li>Destinations</li>
+        <li class="active">Trip Sources</li>
+        <li>Templates</li>
+        <li>T&C</li>
+        <li>Inc/Exclusions</li>
+        <li>Cab Types</li>
+        <li>Tourists</li>
+        <li>Report Activities</li>
+        <li>Document Types</li>
+      </ul>
+    </aside>
+    
+    <main class="content">
+      <div class="content-header">
+        Showing 1 - 20 of 2429 Items <span>↻</span>
+      </div>
+      
+      <div class="table-container">
+        <table id="tripSourceTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Created By</th>
+              <th>Tags</th>
+              <th>Teams</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="text-blue">NEED FOR TEST (NEED FOR TEST)</div>
+              </td>
+              <td>
+                <div class="text-black">Himanshu Sales</div>
+                <div class="table-item-desc">10 Apr, 2026</div>
+              </td>
+              <td></td>
+              <td>Tester team • Tester Team 2 • Tester Team 3</td>
+              <td style="text-align: right; cursor: pointer;">⋮</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="text-blue">AB Test 600 (Ab600)</div>
+              </td>
+              <td>
+                <div class="text-black">Abhishek Sales</div>
+                <div class="table-item-desc">10 Apr, 2026</div>
+              </td>
+              <td></td>
+              <td>Tester team • Tester Team 2 • Tester Team 3</td>
+              <td style="text-align: right; cursor: pointer;">⋮</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="text-blue">AB Test 403 (AB403)</div>
+                <div class="table-item-desc text-blue">Jaipur • B2B Agent</div>
+              </td>
+              <td>
+                <div class="text-black">Abhishek Sales</div>
+                <div class="table-item-desc">7 Apr, 2026</div>
+              </td>
+              <td></td>
+              <td>Tester team • Tester Team 2 • Tester Team 3</td>
+              <td style="text-align: right; cursor: pointer;">⋮</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="text-blue">AB Test 402 (AB402)</div>
+              </td>
+              <td>
+                <div class="text-black">Abhishek Sales</div>
+                <div class="table-item-desc">7 Apr, 2026</div>
+              </td>
+              <td></td>
+              <td>Tester team • Tester Team 2 • Tester Team 3</td>
+              <td style="text-align: right; cursor: pointer;">⋮</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="text-blue">Ab test 401 (Ab401)</div>
+              </td>
+              <td>
+                <div class="text-black">Abhishek Sales</div>
+                <div class="table-item-desc">7 Apr, 2026</div>
+              </td>
+              <td></td>
+              <td>Tester team • Tester Team 2 • Tester Team 3</td>
+              <td style="text-align: right; cursor: pointer;">⋮</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="text-blue">Ab Test 400 (AB400)</div>
+                <div class="table-item-desc text-blue">Jaipur • B2B Agent</div>
+              </td>
+              <td>
+                <div class="text-black">Abhishek Test Sales Head</div>
+                <div class="table-item-desc">7 Apr, 2026</div>
+              </td>
+              <td></td>
+              <td>Tester team • Tester Team 2 • Tester Team 3</td>
+              <td style="text-align: right; cursor: pointer;">⋮</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- SCREEN 2: Auto Follow-Up Rules -->
+<div id="screen2" class="hidden" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+  <div class="sub-nav">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <a class="link" onclick="goToScreen1()" style="text-decoration: none; font-size: 20px;">←</a>
+      <h1>Auto Follow-Up Rules</h1>
+    </div>
+    <div class="sub-nav-actions">
+      <button class="btn-primary" onclick="openModal('modalB')">Create New Rule</button>
+    </div>
+  </div>
+  
+  <div class="main-layout">
+    <main class="content" style="padding: 24px;">
+      <div class="table-container">
+        <table id="ruleTable">
+          <thead>
+            <tr>
+              <th>Rule Name</th>
+              <th>Level</th>
+              <th>Schedule / Trigger</th>
+              <th>Task Type</th>
+              <th>Agents / Scope</th>
+              <th>Assigned To</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-black">CRR Monthly Follow-Up</td>
+              <td>Trip Source</td>
+              <td>1st, 8th, 16th, 24th of month</td>
+              <td>Follow-Up Call</td>
+              <td>80 agents</td>
+              <td>Trip Source's Owner</td>
+              <td class="text-black">Active</td>
+              <td><a class="link">Edit</a> · <a class="link">Deactivate</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL A: Add Task / Follow-Up (Without Level Selection) -->
+<div id="modalA" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Add Task / Follow-Up</h2>
+        <p>Select the details you want to save for this task</p>
+      </div>
+      <div class="close-btn" onclick="closeModal('modalA')">✕</div>
+    </div>
+    <div class="modal-body">
+
+      <div id="formA">
+        <div class="form-section">
+          <div class="section-title">
+            <span>🎯</span> Target
+          </div>
+          <div class="section-content">
+            <div class="form-row" id="fg-ts">
+              <div class="form-group">
+                <label>Trip Source</label>
+                <input type="text" id="a-ts" placeholder="Search agent by name..." class="req-a">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="form-section">
+          <div class="section-title">
+            <span>📝</span> Task Details
+          </div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Task Type</label>
+                <select id="a-type" class="req-a">
+                  <option value="">Select...</option>
+                  <option>Follow-Up Call</option>
+                  <option>WhatsApp Follow-Up</option>
+                  <option>Email Follow-Up</option>
+                  <option>Payment Follow-Up</option>
+                  <option>Confirmation Call</option>
+                  <option>Reconfirmation</option>
+                  <option>Internal Task</option>
+                  <option>General Comment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Due Date (optional)</label>
+                <input type="datetime-local" id="a-date">
+                <div class="helper-text">If set, this task will appear as a reminder.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Assign To (optional)</label>
+                <input type="text" id="a-assign" placeholder="Search team member...">
+                <div class="helper-text">Leave blank to assign to yourself.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Comment</label>
+                <textarea id="a-comment" rows="3" placeholder="Describe the action needed..." class="req-a"></textarea>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top: 16px; justify-content: flex-end;">
+              <button class="btn-secondary" onclick="closeModal('modalA')" style="margin-right: 16px;">Cancel</button>
+              <button class="btn-primary" onclick="saveModalA()">Save Task</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL B: Create New Rule (Without Level Selection) -->
+<div id="modalB" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Create New Rule</h2>
+        <p>Set up an automated follow-up rule for Trip Sources</p>
+      </div>
+      <div class="close-btn" onclick="closeModal('modalB')">✕</div>
+    </div>
+    <div class="modal-body">
+      
+      <div id="formB">
+        <div class="form-section">
+          <div class="section-title">
+            <span>⚙️</span> Rule Identity
+          </div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Rule Name</label>
+                <input type="text" id="b-name" class="req-b">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="b-ts-fields">
+          <hr>
+          <div class="form-section">
+            <div class="section-title">
+              <span>📅</span> Schedule & Target
+            </div>
+            <div class="section-content">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Trip Source(s)</label>
+                  <input type="text" id="b-ts-agents" placeholder="Search and select agents..." class="req-b">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Start Date</label>
+                  <input type="date" id="b-start" class="req-b">
+                </div>
+                <div class="form-group">
+                  <label>End Date (optional)</label>
+                  <input type="date" id="b-end">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Schedule Type</label>
+                  <select id="b-sch-type" onchange="toggleSch()">
+                    <option value="days">Fixed Days of Month</option>
+                    <option value="freq">Fixed Frequency</option>
+                  </select>
+                </div>
+                <div class="form-group" id="sch-freq" style="display:none;">
+                  <label>Every (days)</label>
+                  <input type="number" id="b-freq">
+                </div>
+                <div class="form-group">
+                  <label>Time of Day</label>
+                  <input type="time" id="b-time" class="req-b">
+                </div>
+              </div>
+              <div class="form-row" id="sch-days">
+                <div class="form-group">
+                  <label>Select Dates</label>
+                  <input type="text" id="b-days-input" placeholder="e.g. 1, 15, 28">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr>
+        <div class="form-section">
+          <div class="section-title">
+            <span>📝</span> Task Definition
+          </div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Task Type</label>
+                <select id="b-type" class="req-b">
+                  <option value="">Select...</option>
+                  <option>Follow-Up Call</option>
+                  <option>WhatsApp Follow-Up</option>
+                  <option>Email Follow-Up</option>
+                  <option>Payment Follow-Up</option>
+                  <option>Confirmation Call</option>
+                  <option>Reconfirmation</option>
+                  <option>Internal Task</option>
+                  <option>General Comment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Due Date Offset (Days)</label>
+                <input type="number" id="b-offset" class="req-b" placeholder="0 = same day">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Assign To</label>
+                <select id="b-assign" onchange="toggleAssignB()">
+                  <option id="opt-owner">Trip Source's Owner</option>
+                  <option>Specific Person</option>
+                </select>
+              </div>
+              <div class="form-group hidden" id="fg-specific">
+                <label>Specific Person</label>
+                <input type="text" id="b-specific" placeholder="Search team member...">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Comment</label>
+                <textarea id="b-comment" rows="3" placeholder="Pre-filled comment..." class="req-b"></textarea>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top: 16px; justify-content: flex-end;">
+              <button class="btn-secondary" onclick="closeModal('modalB')" style="margin-right: 16px;">Cancel</button>
+              <button class="btn-primary" onclick="saveModalB()">Save Rule</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function goToScreen2() {
+    toggleDropdown(); // close if open
+    document.getElementById('screen1').classList.add('hidden');
+    document.getElementById('screen2').classList.remove('hidden');
+  }
+  function goToScreen1() {
+    document.getElementById('screen2').classList.add('hidden');
+    document.getElementById('screen1').classList.remove('hidden');
+  }
+
+  function toggleDropdown() {
+    const el = document.getElementById('ellipsisDropdown');
+    el.classList.toggle('show');
+  }
+
+  document.addEventListener('click', function(event) {
+    const isClickInside = event.target.closest('.sub-nav-actions');
+    if (!isClickInside) {
+      document.getElementById('ellipsisDropdown').classList.remove('show');
+    }
+  });
+
+  function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+    clearErrors(id);
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function saveModalA() {
+    clearErrors('modalA');
+    let valid = true;
+    document.getElementById('modalA').querySelectorAll('.req-a').forEach(el => {
+      if(el.offsetParent !== null && !el.value.trim()) {
+        el.classList.add('error');
+        valid = false;
+      }
+    });
+    if(!valid) return;
+
+    alert("Task saved for Trip Source successfully.");
+    closeModal('modalA');
+  }
+
+  function toggleSch() {
+    let val = document.getElementById('b-sch-type').value;
+    document.getElementById('sch-days').style.display = val === 'days' ? 'flex' : 'none';
+    document.getElementById('sch-freq').style.display = val === 'freq' ? 'flex' : 'none';
+  }
+
+  function toggleAssignB() {
+    let val = document.getElementById('b-assign').value;
+    document.getElementById('fg-specific').classList.toggle('hidden', val !== 'Specific Person');
+  }
+
+  function saveModalB() {
+    clearErrors('modalB');
+    let valid = true;
+    document.getElementById('modalB').querySelectorAll('.req-b').forEach(el => {
+      if(el.offsetParent !== null && !el.value.trim()) {
+        el.classList.add('error');
+        valid = false;
+      }
+    });
+    if(!valid) return;
+
+    let name = document.getElementById('b-name').value;
+    let sch = '';
+    let scope = document.getElementById('b-ts-agents').value;
+    
+    let stype = document.getElementById('b-sch-type').value;
+    if(stype === 'days') {
+      let days = document.getElementById('b-days-input').value;
+      sch = days ? days + ' of month' : 'No days selected';
+    } else {
+      sch = 'Every ' + document.getElementById('b-freq').value + ' days';
+    }
+    
+    let type = document.getElementById('b-type').value;
+    let assign = document.getElementById('b-assign').value === 'Specific Person' ? document.getElementById('b-specific').value : "Trip Source's Owner";
+
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-black">${name}</td>
+      <td>Trip Source</td>
+      <td>${sch}</td>
+      <td>${type}</td>
+      <td>${scope}</td>
+      <td>${assign}</td>
+      <td class="text-black">Active</td>
+      <td><a class="link">Edit</a> · <a class="link">Deactivate</a></td>
+    `;
+    document.querySelector('#ruleTable tbody').prepend(tr);
+    closeModal('modalB');
+  }
+
+  function clearErrors(modalId) {
+    document.getElementById(modalId).querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  }
+</script>
+</body>
+</html>
