@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIMANSHU AGENCY - Trip Source Details</title>
+<style>
+  :root {
+    --bg-color: #f4f5f7;
+    --border-color: #e0e0e0;
+    --text-main: #000000;
+    --text-muted: #666666;
+    --white: #ffffff;
+    --black: #000000;
+    --primary-blue: #3b82f6;
+    --primary-blue-hover: #2563eb;
+    --danger: #ef4444;       /* equivalent to tailwind red-500 */
+    --danger-bg: #fef2f2;    /* equivalent to tailwind red-50 */
+    --danger-border: #f87171;/* equivalent to tailwind red-400 */
+  }
+  
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background: var(--bg-color); 
+    color: var(--text-main); 
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Top Navigation */
+  .top-nav {
+    background: #1e1e2d;
+    color: var(--white);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 24px;
+    font-size: 14px;
+  }
+  .top-nav .logo { font-weight: bold; font-size: 18px; }
+  .top-nav .nav-links { display: flex; gap: 24px; flex: 1; }
+  .top-nav .nav-links a { color: var(--white); text-decoration: none; cursor: pointer; }
+  .top-nav .search-bar { 
+    background: rgba(255,255,255,0.1); 
+    border: none; 
+    border-radius: 4px; 
+    padding: 8px 16px; 
+    color: white; 
+    width: 300px;
+  }
+  .top-nav .right-actions { display: flex; gap: 16px; align-items: center; }
+  .btn-whats-new { background: #e0e0e0; color: #000; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+  /* Sub Navigation */
+  .sub-nav {
+    background: var(--bg-color);
+    height: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sub-nav h1 { margin: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; }
+  .sub-nav a.link { color: var(--black); font-weight: 500; cursor: pointer; text-decoration: none; }
+  
+  /* Tab Navigation below Sub Nav */
+  .tab-nav {
+    background: var(--bg-color);
+    display: flex;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-color);
+    gap: 24px;
+  }
+  .tab-nav-item {
+    padding: 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+  .tab-nav-item.active {
+    color: var(--black);
+    border-bottom-color: var(--primary-blue);
+  }
+
+  /* Main Layout */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left column - Due dates */
+  .sidebar-left {
+    width: 220px;
+    background: var(--bg-color);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    padding: 24px 0;
+  }
+  
+  .sidebar-left .filter-header {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--black);
+    padding: 0 24px 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .sidebar-left .tab-list {
+    margin-top: 16px;
+  }
+
+  .sidebar-left .tab-item {
+    padding: 12px 24px;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .sidebar-left .tab-item:hover {
+    background: var(--white);
+  }
+
+  .sidebar-left .tab-item.active {
+    background: var(--white);
+    color: var(--black);
+    font-weight: 600;
+    border-right: 3px solid var(--primary-blue);
+  }
+
+  /* Right Column - Advanced Filters */
+  .sidebar-right {
+    width: 280px;
+    background: var(--bg-color);
+    border-left: 1px solid var(--border-color);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sidebar-right .header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sidebar-right .filter-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .sidebar-right .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 0;
+  }
+  
+  .sidebar-right .form-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  .sidebar-right select, .sidebar-right input {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--white);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .sidebar-right .filter-actions {
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  /* Content Area (Right Column) */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg-color);
+  }
+  
+  .content-header {
+    height: 56px;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-color);
+  }
+  .content-header span {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  
+  /* Buttons */
+  .btn-primary {
+    background: var(--primary-blue);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .btn-primary:hover {
+    background: var(--primary-blue-hover);
+  }
+  .btn-link {
+    background: none;
+    color: var(--text-muted);
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .btn-link:hover {
+    color: var(--black);
+  }
+
+  /* Table */
+  .table-container {
+    background: var(--white);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { 
+    padding: 16px 24px; 
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color); 
+    font-size: 14px; 
+    vertical-align: top;
+  }
+  th { font-weight: 600; color: var(--text-main); }
+  td { color: var(--text-main); }
+  
+  .td-desc { width: 30%; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .text-muted { color: var(--text-muted); font-size: 13px; margin-top: 4px; display: block; }
+  .row-completed td { color: var(--text-muted) !important; }
+  
+  .badge-overdue {
+    background-color: var(--white);
+    border: 1px solid var(--danger-border);
+    color: var(--black);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    display: inline-block;
+  }
+
+  .ellipsis-btn {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; justify-content: center; align-items: flex-start;
+    z-index: 100;
+    padding: 40px;
+    overflow-y: auto;
+  }
+  
+  /* Modal Content */
+  .modal {
+    background: var(--white);
+    width: 100%;
+    max-width: 600px; /* narrowed since fields are less complex here */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h2 { margin: 0; font-size: 20px; font-weight: 700; }
+  .close-btn { cursor: pointer; font-size: 20px; font-weight: bold; color: var(--text-muted); }
+  
+  .modal-body { padding: 24px; }
+  
+  .context-bar {
+    background: var(--bg-color);
+    padding: 12px 16px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .form-group label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .helper-text { font-size: 12px; color: var(--text-muted); }
+  .error { border-color: red !important; }
+
+  /* Sub Content (Tabs other than Follow-ups) */
+  .placeholder-content {
+    padding: 24px;
+    font-size: 16px;
+    color: var(--text-muted);
+    background: var(--white);
+    margin: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+  
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav">
+  <div class="logo">Logo</div>
+  <div class="nav-links">
+    <a>Trips</a>
+    <a>Bookings</a>
+    <a>Accounting</a>
+    <a>Call Logs</a>
+  </div>
+  <input type="text" class="search-bar" placeholder="Search for trips...">
+  <div class="right-actions">
+    <a>Services</a>
+    <span>🔔</span>
+    <button class="btn-whats-new">What's New</button>
+    <span>🏠</span>
+    <span>👤</span>
+  </div>
+</nav>
+
+<!-- Page Header Content -->
+<div class="sub-nav">
+  <div style="display: flex; align-items: center; gap: 16px;">
+    <a href="trip-source.html" class="link" style="font-size: 20px;">←</a>
+    <h1>HIMANSHU AGENCY</h1>
+    <span style="color: var(--text-muted); font-size: 14px; border-left: 1px solid var(--border-color); padding-left: 16px;">Trip-Sources</span>
+  </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <div class="tab-nav-item" onclick="switchTab('details')">Details</div>
+  <div class="tab-nav-item" onclick="switchTab('trips')">Trips</div>
+  <div class="tab-nav-item" onclick="switchTab('payments')">Payments</div>
+  <div class="tab-nav-item" onclick="switchTab('accounting')">Accounting</div>
+  <div class="tab-nav-item active" id="tab-followups" onclick="switchTab('followups')">Follow-Ups</div>
+</div>
+
+<!-- MAIN LAYOUT FOR FOLLOW-UPS TAB -->
+<div id="view-followups" class="main-layout">
+  
+  <!-- Left Side: Due Dates -->
+  <aside class="sidebar-left">
+    <div class="filter-header">Due Date</div>
+    <div class="tab-list">
+      <div class="tab-item active" onclick="setLeftFilter(this, 'All')">All</div>
+      <div class="tab-item" onclick="setLeftFilter(this, 'Today')">Today</div>
+      <div class="tab-item" onclick="setLeftFilter(this, 'This Week')">This Week</div>
+      <div class="tab-item" onclick="setLeftFilter(this, 'This Month')">This Month</div>
+      <div class="tab-item" onclick="setLeftFilter(this, 'Overdue')">Overdue</div>
+      <div class="tab-item" onclick="setLeftFilter(this, 'No Due Date')">No Due Date</div>
+    </div>
+  </aside>
+  
+  <!-- Right Content Area -->
+  <main class="content">
+    <div class="content-header">
+      <span id="followups-count">Showing 5 follow-ups</span>
+      <button class="btn-primary" onclick="openModal()">Add Follow-Up</button>
+    </div>
+    
+    <div class="table-container">
+      <table id="followupsTable">
+        <thead>
+          <tr>
+            <th>Due At</th>
+            <th>Task Type</th>
+            <th>Description</th>
+            <th>Assigned To</th>
+            <th>Created By</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Row 1 -->
+          <tr data-status="Pending" data-type="Follow-Up Call" data-assignee="Ravi" data-due="true">
+            <td>8 Apr, 10:00 AM</td>
+            <td>Follow-Up Call</td>
+            <td class="td-desc">Monthly follow-up — check for hotel requirements</td>
+            <td>Ravi</td>
+            <td>Ravi <span class="text-muted">on 1 Apr</span></td>
+            <td>Pending</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <!-- Row 2 -->
+          <tr data-status="Pending" data-type="WhatsApp Follow-Up" data-assignee="Anush" data-due="overdue">
+            <td>
+              10 Apr, 12:00 AM
+              <span class="badge-overdue">Overdue</span>
+            </td>
+            <td>WhatsApp Follow-Up</td>
+            <td class="td-desc">Share Darjeeling package options on WhatsApp</td>
+            <td>Anush</td>
+            <td>Anush <span class="text-muted">on 7 Apr</span></td>
+            <td>Pending</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <!-- Row 3 -->
+          <tr class="row-completed" data-status="Completed" data-type="Follow-Up Call" data-assignee="Ravi" data-due="true">
+            <td>5 Apr, 9:00 AM</td>
+            <td>Follow-Up Call</td>
+            <td class="td-desc">Agent asked to call back after Eid holidays</td>
+            <td>Ravi</td>
+            <td>Ravi <span class="text-muted">on 3 Apr</span></td>
+            <td>Completed</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <!-- Row 4 -->
+          <tr data-status="Pending" data-type="Confirmation Call" data-assignee="Himanshu" data-due="true">
+            <td>15 Apr, 11:00 AM</td>
+            <td>Confirmation Call</td>
+            <td class="td-desc">Confirm group booking interest for May</td>
+            <td>Himanshu</td>
+            <td>Himanshu <span class="text-muted">on 9 Apr</span></td>
+            <td>Pending</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <!-- Row 5 -->
+          <tr data-status="Pending" data-type="Internal Task" data-assignee="Ravi" data-due="none">
+            <td>-</td>
+            <td>Internal Task</td>
+            <td class="td-desc">Agent prefers calls in the morning only</td>
+            <td>Ravi</td>
+            <td>Ravi <span class="text-muted">on 28 Mar</span></td>
+            <td>Pending</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  
+  <!-- Right Side: Advanced Filters -->
+  <aside class="sidebar-right">
+    <div class="header">
+      Advanced Filters
+      <span style="color: var(--text-muted); cursor: pointer; font-size: 18px;">›</span>
+    </div>
+    <div class="filter-body">
+      <div class="form-group">
+        <label>Assigned To</label>
+        <select id="filter-assignee">
+          <option value="Anyone">Anyone</option>
+          <option value="Me">Me</option>
+          <option value="Ravi">Ravi</option>
+          <option value="Anush">Anush</option>
+          <option value="Himanshu">Himanshu</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Task Type</label>
+        <select id="filter-type">
+          <option value="All Types">All Types</option>
+          <option value="Follow-Up Call">Follow-Up Call</option>
+          <option value="WhatsApp Follow-Up">WhatsApp Follow-Up</option>
+          <option value="Email Follow-Up">Email Follow-Up</option>
+          <option value="Payment Follow-Up">Payment Follow-Up</option>
+          <option value="Confirmation Call">Confirmation Call</option>
+          <option value="Reconfirmation">Reconfirmation</option>
+          <option value="Internal Task">Internal Task</option>
+          <option value="General Comment">General Comment</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Task Status</label>
+        <select id="filter-status">
+          <option value="All">All</option>
+          <option value="Pending">Pending</option>
+          <option value="Overdue">Overdue</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" onclick="applyFilters()" style="flex:1;">Apply Filters</button>
+      <button class="btn-link" onclick="resetFilters()">Reset</button>
+    </div>
+  </aside>
+  
+</div>
+
+<!-- PLACEHOLDER FOR OTHER TABS -->
+<div id="view-placeholder" class="hidden">
+  <div class="placeholder-content">
+    This is placeholder content for another tab. Click on "Follow-Ups" to see the task list.
+  </div>
+</div>
+
+<!-- MODAL: ADD FOLLOW-UP -->
+<div id="addFollowUpModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Follow-Up</h2>
+      <div class="close-btn" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      
+      <div class="context-bar">
+        For: Himanshu Agency (Himanshu)
+      </div>
+
+      <div class="form-group">
+        <label>Task Type <span style="color:red">*</span></label>
+        <select id="modal-type" class="req-field">
+          <option value="">Select...</option>
+          <option>Follow-Up Call</option>
+          <option>WhatsApp Follow-Up</option>
+          <option>Email Follow-Up</option>
+          <option>Payment Follow-Up</option>
+          <option>Confirmation Call</option>
+          <option>Reconfirmation</option>
+          <option>Internal Task</option>
+          <option>General Comment</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Comment <span style="color:red">*</span></label>
+        <textarea id="modal-comment" rows="3" placeholder="Describe the follow-up action..." class="req-field"></textarea>
+      </div>
+
+      <div style="display:flex; gap: 16px;">
+        <div class="form-group" style="flex: 1;">
+          <label>Due Date</label>
+          <input type="datetime-local" id="modal-date">
+          <div class="helper-text">If set, appears as a reminder in All Tasks.</div>
+        </div>
+        
+        <div class="form-group" style="flex: 1;">
+          <label>Assign To</label>
+          <input type="text" id="modal-assign" placeholder="Search team member...">
+          <div class="helper-text">Defaults to self if blank.</div>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 24px;">
+        <button class="btn-link" onclick="closeModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveFollowUp()">Save</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<script>
+  let filters = {
+    status: 'All',
+    type: 'All Types',
+    assignee: 'Anyone',
+    date: 'All'
+  };
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-nav-item').forEach(el => el.classList.remove('active'));
+    
+    if (tabId === 'followups') {
+      document.getElementById('tab-followups').classList.add('active');
+      document.getElementById('view-followups').classList.remove('hidden');
+      document.getElementById('view-placeholder').classList.add('hidden');
+    } else {
+      // Find the clicked tab explicitly using 'onclick' attribute string matching
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById('view-followups').classList.add('hidden');
+      document.getElementById('view-placeholder').classList.remove('hidden');
+    }
+  }
+
+  function setLeftFilter(element, value) {
+    // UI Update - selection highlight
+    let parent = element.closest('.tab-list');
+    parent.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    element.classList.add('active');
+    
+    // State Update
+    filters.date = value;
+    
+    applyFilters();
+  }
+  
+  function resetFilters() {
+    document.getElementById('filter-assignee').value = 'Anyone';
+    document.getElementById('filter-type').value = 'All Types';
+    document.getElementById('filter-status').value = 'All';
+    applyFilters();
+  }
+
+  function applyFilters() {
+    filters.assignee = document.getElementById('filter-assignee').value;
+    filters.type = document.getElementById('filter-type').value;
+    filters.status = document.getElementById('filter-status').value;
+
+    let rows = document.querySelectorAll('#tableBody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+      let rStatus = row.getAttribute('data-status');
+      let rType = row.getAttribute('data-type');
+      let rAssignee = row.getAttribute('data-assignee');
+      let rDue = row.getAttribute('data-due'); // 'true', 'none', 'overdue'
+
+      let tempStatusMatch = (filters.status === 'All' || rStatus === filters.status);
+      
+      // Simulate Overdue status mapping (if status filter is Overdue, it needs data-due='overdue')
+      if (filters.status === 'Overdue') {
+        tempStatusMatch = (rStatus !== 'Completed' && rDue === 'overdue');
+      }
+
+      let typeMatch = (filters.type === 'All Types' || filters.type === rType);
+      
+      let assignMatch = (filters.assignee === 'Anyone' || filters.assignee === rAssignee);
+      
+      // Basic simulation for date
+      let dateMatch = true;
+      if (filters.date === 'No Due Date') dateMatch = (rDue === 'none');
+      if (filters.date === 'Overdue') dateMatch = (rDue === 'overdue' && rStatus !== 'Completed');
+      // For Today, This Week, This Month - just assume true for this mockup if it has a date
+      if (['Today', 'This Week', 'This Month'].includes(filters.date) && rDue === 'none') dateMatch = false;
+
+      if (tempStatusMatch && typeMatch && assignMatch && dateMatch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    document.getElementById('followups-count').textContent = `Showing ${visibleCount} follow-ups`;
+  }
+
+  function openModal() {
+    document.getElementById('addFollowUpModal').style.display = 'flex';
+    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    // reset form
+    document.getElementById('modal-type').value = '';
+    document.getElementById('modal-comment').value = '';
+    document.getElementById('modal-date').value = '';
+    document.getElementById('modal-assign').value = '';
+  }
+
+  function closeModal() {
+    document.getElementById('addFollowUpModal').style.display = 'none';
+  }
+
+  function saveFollowUp() {
+    let typeEl = document.getElementById('modal-type');
+    let commentEl = document.getElementById('modal-comment');
+    
+    let valid = true;
+    if (!typeEl.value.trim()) { typeEl.classList.add('error'); valid = false; }
+    else { typeEl.classList.remove('error'); }
+    
+    if (!commentEl.value.trim()) { commentEl.classList.add('error'); valid = false; }
+    else { commentEl.classList.remove('error'); }
+    
+    if (!valid) return;
+
+    let typeStr = typeEl.value;
+    let commentStr = commentEl.value;
+    let dateStrRaw = document.getElementById('modal-date').value;
+    
+    let dueFormatted = '-';
+    let dataDue = 'none';
+    if (dateStrRaw) {
+      let d = new Date(dateStrRaw);
+      dueFormatted = d.toLocaleString('en-GB', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'});
+      dataDue = 'true';
+    }
+    
+    let assignStr = document.getElementById('modal-assign').value || 'Me';
+    
+    let todayFormatted = new Date().toLocaleString('en-GB', {day:'numeric', month:'short'});
+
+    // Create Row
+    let tr = document.createElement('tr');
+    tr.setAttribute('data-status', 'Pending');
+    tr.setAttribute('data-type', typeStr);
+    tr.setAttribute('data-assignee', assignStr);
+    tr.setAttribute('data-due', dataDue);
+    
+    tr.innerHTML = `
+      <td>${dueFormatted}</td>
+      <td>${typeStr}</td>
+      <td class="td-desc">${commentStr}</td>
+      <td>${assignStr}</td>
+      <td>Me <span class="text-muted">on ${todayFormatted}</span></td>
+      <td>Pending</td>
+      <td class="ellipsis-btn">⋮</td>
+    `;
+    
+    document.getElementById('tableBody').prepend(tr);
+    closeModal();
+    applyFilters(); // refresh count
+  }
+</script>
+</body>
+</html>
