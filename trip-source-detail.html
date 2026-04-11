@@ -347,6 +347,38 @@
   }
   
   .hidden { display: none !important; }
+
+  /* Call Logs Specific */
+  .audio-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8f9fa;
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    min-width: 140px;
+  }
+  .audio-player .play-icon { font-size: 10px; cursor: pointer; }
+  .audio-player .bar { flex: 1; height: 4px; background: #e0e0e0; border-radius: 2px; position: relative; }
+  .audio-player .bar-fill { height: 100%; background: var(--primary-color); border-radius: 2px; position: absolute; left: 0; top: 0; }
+  .audio-player .time { font-weight: 500; color: var(--text-muted); }
+  
+  .phone-icon-btn {
+    border: 1px solid var(--border-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--primary-color);
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .call-time-inputs { display: flex; align-items: center; gap: 8px; }
+  .call-time-inputs input { width: 50%; padding: 8px; font-size: 13px; text-align: center; }
+  
+  .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; }
+  .checkbox-group input { cursor: pointer; margin: 0; }
 </style>
 </head>
 <body>
@@ -377,6 +409,7 @@
   <div class="tab-nav-item" onclick="switchTab('payments')">Payments</div>
   <div class="tab-nav-item" onclick="switchTab('accounting')">Accounting</div>
   <div class="tab-nav-item active" id="tab-followups" onclick="switchTab('followups')">Follow-Ups</div>
+  <div class="tab-nav-item" id="tab-calllogs" onclick="switchTab('calllogs')">Call Logs</div>
 </div>
 
 <!-- MAIN LAYOUT FOR FOLLOW-UPS TAB -->
@@ -482,17 +515,6 @@
     </div>
     <div class="filter-body">
       <div class="form-group">
-        <label>Assigned To</label>
-        <select id="filter-assignee">
-          <option value="Anyone">Anyone</option>
-          <option value="Me">Me</option>
-          <option value="Ravi">Ravi</option>
-          <option value="Anush">Anush</option>
-          <option value="Himanshu">Himanshu</option>
-        </select>
-      </div>
-
-      <div class="form-group">
         <label>Task Type</label>
         <select id="filter-type">
           <option value="All Types">All Types</option>
@@ -516,6 +538,17 @@
           <option value="Completed">Completed</option>
         </select>
       </div>
+
+      <div class="form-group">
+        <label>Assigned To</label>
+        <select id="filter-assignee">
+          <option value="Anyone">Anyone</option>
+          <option value="Me">Me</option>
+          <option value="Ravi">Ravi</option>
+          <option value="Anush">Anush</option>
+          <option value="Himanshu">Himanshu</option>
+        </select>
+      </div>
     </div>
     <div class="filter-actions">
       <button class="btn-primary" onclick="applyFilters()" style="flex:1;">Apply Filters</button>
@@ -523,6 +556,145 @@
     </div>
   </aside>
   
+</div>
+
+<!-- MAIN LAYOUT FOR CALL LOGS TAB -->
+<div id="view-calllogs" class="main-layout hidden">
+  <main class="content">
+    <div class="content-header" style="justify-content: flex-start; gap: 16px;">
+      <span id="calllogs-count" style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Showing 1 - 20 of 20191 Items</span>
+      <span style="color: var(--text-muted); cursor: pointer; font-size: 14px;">↻</span>
+    </div>
+    
+    <div class="table-container">
+      <table id="callLogsTable">
+        <thead>
+          <tr>
+            <th>Call Direction</th>
+            <th>For</th>
+            <th>Agent</th>
+            <th>Updated At</th>
+            <th>Total Call Duration</th>
+            <th>Call Recording</th>
+            <th>Follow-Ups</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>In-bound</td>
+            <td>Trip Plan Request <button class="phone-icon-btn" style="margin-left:4px;">+</button><br><span class="text-muted" style="font-size:11px;">Id: 14944</span></td>
+            <td>N/A</td>
+            <td>11:22 AM,<br>11 Apr 2026</td>
+            <td>0s</td>
+            <td><span class="text-muted">No recording</span></td>
+            <td>-</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <tr>
+            <td>Out-bound</td>
+            <td>917827130400 <button class="phone-icon-btn" style="margin-left:4px;">📞</button></td>
+            <td>N/A</td>
+            <td>11:20 AM,<br>11 Apr 2026</td>
+            <td>1m 7s</td>
+            <td>
+              <div class="audio-player">
+                <span class="play-icon">▶</span>
+                <span class="bar"><span class="bar-fill" style="width:100%;"></span></span>
+                <span class="time">00:57</span>
+              </div>
+            </td>
+            <td>-</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <tr>
+            <td>In-bound</td>
+            <td>Trip Plan Request <button class="phone-icon-btn" style="margin-left:4px;">+</button><br><span class="text-muted" style="font-size:11px;">Id: 14943</span></td>
+            <td>N/A</td>
+            <td>11:18 AM,<br>11 Apr 2026</td>
+            <td>1s</td>
+            <td>
+              <div class="audio-player">
+                <span class="play-icon">▶</span>
+                <span class="bar"><span class="bar-fill" style="width:0%;"></span></span>
+                <span class="time">00:00</span>
+              </div>
+            </td>
+            <td>-</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <tr>
+            <td>Out-bound</td>
+            <td>916200449859 <button class="phone-icon-btn" style="margin-left:4px;">📞</button></td>
+            <td>N/A</td>
+            <td>11:18 AM,<br>11 Apr 2026</td>
+            <td>19s</td>
+            <td>
+              <div class="audio-player">
+                <span class="play-icon">▶</span>
+                <span class="bar"><span class="bar-fill" style="width:20%;"></span></span>
+                <span class="time">00:10</span>
+              </div>
+            </td>
+            <td>-</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+          <tr>
+            <td>In-bound</td>
+            <td>Trip Plan Request <button class="phone-icon-btn" style="margin-left:4px;">+</button><br><span class="text-muted" style="font-size:11px;">Id: 14942</span></td>
+            <td>N/A</td>
+            <td>11:20 AM,<br>11 Apr 2026</td>
+            <td>3m 26s</td>
+            <td>
+              <div class="audio-player">
+                <span class="play-icon">▶</span>
+                <span class="bar"><span class="bar-fill" style="width:60%;"></span></span>
+                <span class="time">03:00</span>
+              </div>
+            </td>
+            <td>-</td>
+            <td class="ellipsis-btn">⋮</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  
+  <aside class="sidebar-right">
+    <div class="header">
+      Advanced Filters
+      <span style="color: var(--text-muted); cursor: pointer; font-size: 18px;">›</span>
+    </div>
+    <div class="filter-body" style="padding-top:16px;">
+      <div class="form-group">
+        <label>For</label>
+        <input type="text" placeholder="Type to search...">
+      </div>
+      <div class="form-group">
+        <label>Agent</label>
+        <input type="text" placeholder="Type to search...">
+      </div>
+      <div class="form-group">
+        <label>Call Direction</label>
+        <input type="text" placeholder="Type to search...">
+      </div>
+      <div class="form-group">
+        <label style="display:flex; justify-content:space-between;">Call Time <span style="cursor:pointer;">📅</span></label>
+        <div class="call-time-inputs">
+          <input type="text" placeholder="DD MMM'YY">
+          <span style="color:var(--text-muted); font-size: 14px;">→</span>
+          <input type="text" placeholder="DD MMM'YY">
+        </div>
+      </div>
+      <label class="checkbox-group" style="margin-top:20px;">
+        <input type="checkbox"> Missed calls only
+      </label>
+    </div>
+    <div class="filter-actions" style="margin-top:24px; display:flex; gap:12px;">
+      <button class="btn-primary" style="flex:1;">Apply Filters</button>
+      <button class="btn-link" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-weight:600;">Reset Filters</button>
+    </div>
+  </aside>
 </div>
 
 <!-- PLACEHOLDER FOR OTHER TABS -->
@@ -598,15 +770,19 @@
 
   function switchTab(tabId) {
     document.querySelectorAll('.tab-nav-item').forEach(el => el.classList.remove('active'));
-    
+    let clickedTab = document.getElementById(`tab-${tabId}`);
+    if (clickedTab) clickedTab.classList.add('active');
+    else document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+
+    document.getElementById('view-followups').classList.add('hidden');
+    document.getElementById('view-calllogs').classList.add('hidden');
+    document.getElementById('view-placeholder').classList.add('hidden');
+
     if (tabId === 'followups') {
-      document.getElementById('tab-followups').classList.add('active');
       document.getElementById('view-followups').classList.remove('hidden');
-      document.getElementById('view-placeholder').classList.add('hidden');
+    } else if (tabId === 'calllogs') {
+      document.getElementById('view-calllogs').classList.remove('hidden');
     } else {
-      // Find the clicked tab explicitly using 'onclick' attribute string matching
-      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
-      document.getElementById('view-followups').classList.add('hidden');
       document.getElementById('view-placeholder').classList.remove('hidden');
     }
   }
